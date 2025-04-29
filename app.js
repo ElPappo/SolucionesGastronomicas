@@ -99,7 +99,7 @@ document.getElementById('confirmar-btn').addEventListener('click', function () {
     nuevaFila.insertCell(7).textContent = `$${datosVenta.total}`;
     
     // Enviar a Google Sheets
-    fetch("https://script.google.com/macros/s/AKfycbwKRxPhe89p_AGi3D7cHxysef3ttOl_o6oHx8VrxZYJAz11xNp-u9r511x9BQsTtAu-vg/exec", 
+    fetch("https://script.google.com/macros/s/AKfycbzAO13U_4eGPp6zQvcZEpCDRm8cTotYVIro3-XitgNBql8NSFLf8XOAbAGlgWhX2pQFUQ/exec", 
          {
         method: "POST",
         body: JSON.stringify(datosVenta),
