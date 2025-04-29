@@ -1,7 +1,4 @@
-// Variables globales
-let usuarioLogueado = null;
-
-// Datos de usuarios (como ya tenías)
+// Datos de usuarios
 const usuarios = [
     { usuario: 'admin', password: 'elpappo', perfil: 'admin' },
     { usuario: 'matias', password: '12345', perfil: 'vendedor' },
@@ -10,25 +7,24 @@ const usuarios = [
     { usuario: 'ignacio', password: '12345', perfil: 'vendedor' }
 ];
 
+let usuarioLogueado = null;
 let stock = { papas: 10, aceite: 50 };
 const precios = { papas: 20000, aceite: 12000 };
 let ventas = [];
 let clientes = ['Enri´s', 'Brother', 'Cliente nuevo'];
 
-// Manejo del login
+// Login
 document.getElementById('login-form').addEventListener('submit', function (e) {
     e.preventDefault();
-    
     const usuario = document.getElementById('username').value;
     const password = document.getElementById('password').value;
+
     const usuarioEncontrado = usuarios.find(u => u.usuario === usuario && u.password === password);
     
     if (usuarioEncontrado) {
-        usuarioLogueado = usuarioEncontrado;
-
         document.getElementById('login-container').style.display = 'none';
         document.getElementById('app-container').style.display = 'block';
-
+        usuarioLogueado = usuarioEncontrado;
         document.getElementById('vendedor-actual').innerText = `Vendedor: ${usuarioLogueado.usuario}`;
 
         if (usuarioEncontrado.perfil === 'admin') {
@@ -39,29 +35,19 @@ document.getElementById('login-form').addEventListener('submit', function (e) {
     }
 });
 
-// Mostrar stock disponible
+// Mostrar stock al seleccionar producto
 document.getElementById('producto').addEventListener('change', function () {
     const producto = this.value;
-    const stockContainer = document.getElementById('stock-container');
-    stockContainer.innerHTML = `Stock disponible: ${stock[producto]} unidades`;
-
-    if (producto === 'papas') {
-        document.getElementById('descuento-container').style.display = 'block';
-    } else {
-        document.getElementById('descuento-container').style.display = 'none';
-    }
+    document.getElementById('stock-container').innerHTML = `Stock disponible: ${stock[producto]} unidades`;
+    document.getElementById('descuento-container').style.display = (producto === 'papas') ? 'block' : 'none';
 });
 
 // Mostrar campos si cliente es nuevo
 document.getElementById('cliente').addEventListener('change', function () {
-    if (this.value === 'cliente3') {
-        document.getElementById('nuevo-cliente-container').style.display = 'block';
-    } else {
-        document.getElementById('nuevo-cliente-container').style.display = 'none';
-    }
+    document.getElementById('nuevo-cliente-container').style.display = (this.value === 'cliente3') ? 'block' : 'none';
 });
 
-// Actualizar precio
+// Calcular precio total
 function actualizarPrecioTotal() {
     const producto = document.getElementById('producto').value;
     const cantidad = parseInt(document.getElementById('cantidad').value, 10) || 0;
@@ -71,69 +57,81 @@ function actualizarPrecioTotal() {
     let total = precioUnitario * cantidad;
 
     if (descuento > 0) {
-        total = total - (total * descuento / 100);
+        total -= total * descuento / 100;
     }
 
-    document.getElementById('total-price').innerText = `Precio Total: $${total.toLocaleString()}`;
+    document.getElementById('total-price').innerText = `Precio Total: $${total}`;
 }
-
-document.getElementById('cantidad').addEventListener('input', actualizarPrecioTotal);
-document.getElementById('producto').addEventListener('change', actualizarPrecioTotal);
-document.getElementById('descuento')?.addEventListener('change', actualizarPrecioTotal);
-
-actualizarPrecioTotal();
 
 // Confirmar venta
 document.getElementById('confirmar-btn').addEventListener('click', function () {
     const producto = document.getElementById('producto').value;
-    const cantidad = parseInt(document.getElementById('cantidad').value);
-    let clienteSeleccionado = document.getElementById('cliente').value;
+    const cantidad = parseInt(document.getElementById('cantidad').value, 10);
+    const cliente = document.getElementById('cliente').value;
     const metodoPago = document.getElementById('metodo-pago').value;
-    const descuento = parseInt(document.getElementById('descuento').value) || 0;
+    const descuento = parseInt(document.getElementById('descuento').value, 10);
+    const total = parseFloat(document.getElementById('total-price').innerText.replace('Precio Total: $', ''));
 
-    if (clienteSeleccionado === 'cliente3') {
-        clienteSeleccionado = document.getElementById('nuevo-cliente-nombre').value;
-    }
-
-    if (cantidad > stock[producto]) {
-        alert('No hay suficiente stock para realizar esta venta.');
-        return;
-    }
-
-    let precioUnitario = precios[producto] || 0;
-    let total = precioUnitario * cantidad;
-
-    if (descuento > 0) {
-        total = total - (total * descuento / 100);
-    }
-
-    const venta = {
-        perfil: usuarioLogueado.usuario,
-        cliente: clienteSeleccionado,
-        producto,
-        cantidad,
-        metodoPago,
-        descuento: `${descuento}%`,
+    const datosVenta = {
+        vendedor: usuarioLogueado.usuario,
+        cliente: cliente,
+        producto: producto,
+        cantidad: cantidad,
+        pago: metodoPago,
         fecha: new Date().toLocaleString(),
-        total
+        descuento: descuento,
+        total: total
     };
-    ventas.push(venta);
 
-    stock[producto] -= cantidad;
+    // Guardar local
+    ventas.push(datosVenta);
 
+    // Mostrar en tabla
     const ventasTable = document.getElementById('ventas-table').getElementsByTagName('tbody')[0];
-    const row = ventasTable.insertRow();
-    row.insertCell(0).textContent = venta.perfil;
-    row.insertCell(1).textContent = venta.cliente;
-    row.insertCell(2).textContent = venta.producto;
-    row.insertCell(3).textContent = venta.cantidad;
-    row.insertCell(4).textContent = venta.metodoPago;
-    row.insertCell(5).textContent = venta.fecha;
-    row.insertCell(6).textContent = venta.descuento;
-    row.insertCell(7).textContent = `$${venta.total.toLocaleString()}`;
-
-    document.getElementById('venta-form').reset();
-    document.getElementById('stock-container').textContent = `Stock disponible: ${stock[producto]} unidades`;
-
-    actualizarPrecioTotal();
+    const nuevaFila = ventasTable.insertRow();
+    nuevaFila.insertCell(0).textContent = datosVenta.vendedor;
+    nuevaFila.insertCell(1).textContent = datosVenta.cliente;
+    nuevaFila.insertCell(2).textContent = datosVenta.producto;
+    nuevaFila.insertCell(3).textContent = datosVenta.cantidad;
+    nuevaFila.insertCell(4).textContent = datosVenta.pago;
+    nuevaFila.insertCell(5).textContent = datosVenta.fecha;
+    nuevaFila.insertCell(6).textContent = `${datosVenta.descuento}%`;
+    nuevaFila.insertCell(7).textContent = `$${datosVenta.total}`;
+    
+    // Enviar a Google Sheets
+    fetch("https://script.google.com/macros/s/AKfycbwKRxPhe89p_AGi3D7cHxysef3ttOl_o6oHx8VrxZYJAz11xNp-u9r511x9BQsTtAu-vg/exec", 
+         {
+        method: "POST",
+        body: JSON.stringify(datosVenta),
+        headers: { "Content-Type": "application/json" }
+    })
+    .then(res => res.text())
+    .then(respuesta => console.log("Respuesta Sheets:", respuesta))
+    .catch(err => console.error("Error al enviar a Sheets:", err));
 });
+
+// Actualizar precio en tiempo real
+document.getElementById('cantidad').addEventListener('input', actualizarPrecioTotal);
+document.getElementById('descuento').addEventListener('change', actualizarPrecioTotal);
+
+// Exportar ventas a CSV local
+function exportarVentasCSV() {
+    const ventasCSV = ventas.map(venta => {
+        return [
+            venta.vendedor,
+            venta.cliente,
+            venta.producto,
+            venta.cantidad,
+            venta.pago,
+            venta.fecha,
+            venta.descuento,
+            venta.total
+        ].join(',');
+    }).join('\n');
+
+    const csvContent = "data:text/csv;charset=utf-8," + ventasCSV;
+    const link = document.createElement('a');
+    link.setAttribute('href', csvContent);
+    link.setAttribute('download', 'ventas.csv');
+    link.click();
+}
