@@ -9,7 +9,7 @@ const usuarios = [
 
 let usuarioLogueado = null;
 let stock = { papas: 10, aceite: 50 };
-const precios = { papas: 20000, aceite: 12000 };
+const precios = { papas: 20000, aceite: 37500, PulpaDeTomate: 1500 };
 let ventas = [];
 let clientes = ['Enri´s', 'Brother', 'Cliente nuevo'];
 
@@ -99,7 +99,7 @@ document.getElementById('confirmar-btn').addEventListener('click', function () {
     nuevaFila.insertCell(7).textContent = `$${datosVenta.total}`;
     
     // Enviar a Google Sheets
-    fetch("https://script.google.com/macros/s/AKfycbzAO13U_4eGPp6zQvcZEpCDRm8cTotYVIro3-XitgNBql8NSFLf8XOAbAGlgWhX2pQFUQ/exec", 
+    fetch("https://script.google.com/macros/s/AKfycbxZX2HETQ31A9rg12EO07kOay3dc0gD5tb0nS-wChmo42BJqIFFs7PWYTItC_bPNtJ93A/exec", 
          {
         method: "POST",
         body: JSON.stringify(datosVenta),
